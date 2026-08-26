@@ -1,0 +1,120 @@
+<!doctype html>
+<html lang="it">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Codice Lanterna</title>
+    <link rel="stylesheet" href="/styles/main.css" />
+  </head>
+  <body>
+    <div id="app">
+      <header class="app-header">
+        <div class="app-header__brand">
+          <h1 class="app-header__title">CODICE LANTERNA</h1>
+        </div>
+        <p class="app-header__mission" id="mission-text">
+          Estrai il container dal deposito
+        </p>
+        <div class="app-header__stats">
+          <div class="stat">
+            <span class="stat__label">TEMPO</span>
+            <span class="stat__value" id="stat-time">00:00</span>
+          </div>
+          <div class="stat">
+            <span class="stat__label">TENTATIVI</span>
+            <span class="stat__value" id="stat-attempts">0</span>
+          </div>
+        </div>
+      </header>
+
+      <main class="app-main">
+        <section class="panel panel--game" aria-label="Area di gioco">
+          <div class="game-viewport" id="game-root"></div>
+        </section>
+
+        <section class="panel panel--blockly" aria-label="Editor Blockly">
+          <p class="blockly-hint">
+            Completa il programma inserendo i comandi tra PRENDI e RILASCIA.
+          </p>
+          <div class="blockly-viewport" id="blockly-root"></div>
+        </section>
+      </main>
+
+      <footer class="app-controls">
+        <button type="button" class="btn btn--run" id="btn-run">ESEGUI</button>
+        <button type="button" class="btn btn--stop" id="btn-stop">STOP</button>
+        <button type="button" class="btn btn--reset" id="btn-reset">RESET</button>
+      </footer>
+
+      <div
+        class="success-overlay"
+        id="success-overlay"
+        aria-hidden="true"
+        role="dialog"
+        aria-labelledby="success-title"
+        aria-modal="true"
+      >
+        <div class="success-overlay__panel">
+          <h2 class="success-overlay__title" id="success-title">
+            MISSIONE COMPLETATA
+          </h2>
+          <p class="success-overlay__message">
+            Container estratto dal deposito.
+          </p>
+          <dl class="success-overlay__stats">
+            <div class="success-overlay__stat">
+              <dt class="success-overlay__stat-label">TEMPO</dt>
+              <dd class="success-overlay__stat-value" id="success-stat-time">00:00</dd>
+            </div>
+            <div class="success-overlay__stat">
+              <dt class="success-overlay__stat-label">TENTATIVI</dt>
+              <dd class="success-overlay__stat-value" id="success-stat-attempts">0</dd>
+            </div>
+          </dl>
+          <button type="button" class="btn btn--run success-overlay__retry" id="btn-success-retry">
+            RIPROVA
+          </button>
+        </div>
+      </div>
+
+      <div
+        id="splash-screen"
+        class="splash-screen splash-screen--visible"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="splash-title"
+        aria-hidden="false"
+      >
+        <div class="splash-screen__inner">
+          <div class="splash-screen__content">
+            <h1 id="splash-title" class="splash-screen__title">CODICE LANTERNA</h1>
+            <p class="splash-screen__credits">
+              da un'idea di Keila, Leonardo, Juan, Matteo
+            </p>
+            <p class="splash-screen__cta">PREMI UN TASTO PER INIZIARE</p>
+          </div>
+          <div class="splash-lanterna" aria-hidden="true">
+            <img
+              class="splash-lanterna__bg"
+              src="/img/torre-sfondo.png"
+              alt=""
+              width="640"
+              height="960"
+              decoding="async"
+            />
+            <img
+              class="splash-lanterna__tower"
+              src="/img/torre.png"
+              alt="La Lanterna di Genova"
+              width="640"
+              height="960"
+              decoding="async"
+            />
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script type="module" src="/src/main.js"></script>
+  </body>
+</html>

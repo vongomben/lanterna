@@ -1,0 +1,24 @@
+{
+  "name": "codice-lanterna",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "trim-assets": "node scripts/trim-assets.mjs",
+    "test:parser": "node scripts/test-parser.mjs",
+    "test:executor": "node scripts/test-executor.mjs",
+    "test:rules": "node scripts/test-rules.mjs",
+    "test:session": "node scripts/test-session.mjs",
+    "dev": "npm run trim-assets && vite",
+    "build": "npm run trim-assets && vite build && node scripts/copy-img.mjs",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "blockly": "^11.2.1",
+    "kaplay": "^3001.0.0"
+  },
+  "devDependencies": {
+    "sharp": "^0.34.3",
+    "vite": "^6.2.0"
+  }
+}

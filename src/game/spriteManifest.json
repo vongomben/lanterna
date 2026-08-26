@@ -1,0 +1,152 @@
+{
+  "_meta": {
+    "description": "Derived sprites — trimmed visible bounds. Do not edit by hand.",
+    "sourceDir": "img/",
+    "outputDir": "img/generated/",
+    "generatedAt": "2026-08-26T19:18:33.919Z"
+  },
+  "robot": {
+    "source": "robot_gripper_open.png",
+    "file": "generated/robot.png",
+    "original": {
+      "width": 1254,
+      "height": 1254
+    },
+    "trimmed": {
+      "width": 1039,
+      "height": 874
+    }
+  },
+  "robotCarry": {
+    "source": "robot_gripper_carry.png",
+    "file": "generated/robot_carry.png",
+    "original": {
+      "width": 1536,
+      "height": 1024
+    },
+    "trimmed": {
+      "width": 1389,
+      "height": 769
+    }
+  },
+  "container": {
+    "source": "alien_container.png",
+    "file": "generated/container.png",
+    "original": {
+      "width": 1254,
+      "height": 1254
+    },
+    "trimmed": {
+      "width": 957,
+      "height": 653
+    }
+  },
+  "containerGlow": {
+    "source": "alien_container_glow.png",
+    "file": "generated/container_glow.png",
+    "original": {
+      "width": 1536,
+      "height": 1024
+    },
+    "trimmed": {
+      "width": 1250,
+      "height": 747
+    }
+  },
+  "containerOpened": {
+    "source": "alien_container_opened.png",
+    "file": "generated/container_opened.png",
+    "original": {
+      "width": 1254,
+      "height": 1254
+    },
+    "trimmed": {
+      "width": 1036,
+      "height": 672
+    }
+  },
+  "startMarker": {
+    "source": "start_marker_A.png",
+    "file": "generated/start_marker_A.png",
+    "original": {
+      "width": 1254,
+      "height": 1254
+    },
+    "trimmed": {
+      "width": 1033,
+      "height": 1007
+    }
+  },
+  "goalMarker": {
+    "source": "goal_marker_B.png",
+    "file": "generated/goal_marker_B.png",
+    "original": {
+      "width": 1254,
+      "height": 1254
+    },
+    "trimmed": {
+      "width": 1130,
+      "height": 1073
+    }
+  },
+  "floorClean": {
+    "source": "floor_tile_clean.png",
+    "file": "generated/floor_tile_clean.png",
+    "original": {
+      "width": 1254,
+      "height": 1254
+    },
+    "trimmed": {
+      "width": 1254,
+      "height": 1254
+    }
+  },
+  "floorWorn": {
+    "source": "floor_tile_worn.png",
+    "file": "generated/floor_tile_worn.png",
+    "original": {
+      "width": 1254,
+      "height": 1254
+    },
+    "trimmed": {
+      "width": 1254,
+      "height": 1254
+    }
+  },
+  "crateWood": {
+    "source": "crate_wood.png",
+    "file": "generated/crate_wood.png",
+    "original": {
+      "width": 1254,
+      "height": 1254
+    },
+    "trimmed": {
+      "width": 738,
+      "height": 719
+    }
+  },
+  "trafficCone": {
+    "source": "traffic_cone.png",
+    "file": "generated/traffic_cone.png",
+    "original": {
+      "width": 1254,
+      "height": 1254
+    },
+    "trimmed": {
+      "width": 446,
+      "height": 514
+    }
+  },
+  "technicalTerminal": {
+    "source": "technical_terminal.png",
+    "file": "generated/technical_terminal.png",
+    "original": {
+      "width": 1254,
+      "height": 1254
+    },
+    "trimmed": {
+      "width": 760,
+      "height": 737
+    }
+  }
+}
