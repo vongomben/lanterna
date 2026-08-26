@@ -5,7 +5,7 @@
 import { scaleToCellFraction, VISUAL_SCALE } from "./grid.js";
 import manifest from "./spriteManifest.json" with { type: "json" };
 
-const IMG = "/img";
+const IMG = `${import.meta.env.BASE_URL}img`;
 
 /** @param {keyof typeof manifest & string} key */
 function generatedPath(key) {

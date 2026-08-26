@@ -27,7 +27,10 @@ function imgStaticPlugin() {
 }
 
 export default defineConfig({
+  base: "./",
+
   plugins: [imgStaticPlugin()],
+
   resolve: {
     alias: {
       "@img": imgDir,
