@@ -48,7 +48,7 @@ import { commands } from "../game/commands.js";
  * @property {(error: { code: string, message: string, blockId?: string }) => void} [onError]
  */
 
-export const DEBUG_EXECUTOR = true;
+export const DEBUG_EXECUTOR = import.meta.env?.DEV ?? false;
 export const MAX_EXECUTED_STEPS = 500;
 
 /** @type {boolean} */
@@ -67,6 +67,31 @@ function debugLog(...args) {
   if (DEBUG_EXECUTOR) {
     console.log("[Executor]", ...args);
   }
+}
+
+/** Do not let UI feedback hooks corrupt executor state. */
+function callHook(hook, payload) {
+  if (!hook) return;
+  try {
+    hook(payload);
+  } catch (error) {
+    console.error("[Executor] feedback hook failed:", error);
+  }
+}
+
+/**
+ * @param {unknown} cause
+ * @param {string} [blockId]
+ */
+function unexpectedError(cause, blockId) {
+  if (DEBUG_EXECUTOR) {
+    console.error("[Executor] unexpected error:", cause);
+  }
+  return {
+    code: "INTERNAL_ERROR",
+    message: "Si è verificato un errore imprevisto. Riprova.",
+    ...(blockId ? { blockId } : {}),
+  };
 }
 
 export function isProgramRunning() {
@@ -119,7 +144,7 @@ function checkStepLimit() {
  */
 function failWith(error, hooks) {
   const result = { ok: false, error };
-  hooks.onError?.(error);
+  callHook(hooks.onError, error);
   return result;
 }
 
@@ -161,39 +186,52 @@ async function executeCommand(command, hooks) {
 
   executedSteps += 1;
 
-  hooks.onCommandStart?.({ type: command.type, blockId: command.blockId });
+  callHook(hooks.onCommandStart, {
+    type: command.type,
+    blockId: command.blockId,
+  });
   debugLog(command.type);
 
   /** @type {{ ok: boolean, error?: { code: string, message: string } }} */
   let cmdResult;
 
-  switch (command.type) {
-    case "forward":
-      cmdResult = await commands.forward();
-      break;
-    case "turnLeft":
-      cmdResult = await commands.turnLeft();
-      break;
-    case "turnRight":
-      cmdResult = await commands.turnRight();
-      break;
-    case "grab":
-      cmdResult = await commands.grab();
-      break;
-    case "release":
-      cmdResult = await commands.release();
-      break;
-    default:
-      cmdResult = {
-        ok: false,
-        error: {
-          code: "UNSUPPORTED_COMMAND",
-          message: `Comando non supportato: ${command.type}`,
-        },
-      };
+  try {
+    switch (command.type) {
+      case "forward":
+        cmdResult = await commands.forward();
+        break;
+      case "turnLeft":
+        cmdResult = await commands.turnLeft();
+        break;
+      case "turnRight":
+        cmdResult = await commands.turnRight();
+        break;
+      case "grab":
+        cmdResult = await commands.grab();
+        break;
+      case "release":
+        cmdResult = await commands.release();
+        break;
+      default:
+        cmdResult = {
+          ok: false,
+          error: {
+            code: "UNSUPPORTED_COMMAND",
+            message: `Comando non supportato: ${command.type}`,
+          },
+        };
+    }
+  } catch (cause) {
+    const error = unexpectedError(cause, command.blockId);
+    callHook(hooks.onCommandEnd, {
+      type: command.type,
+      blockId: command.blockId,
+      result: { ok: false, error },
+    });
+    return failWith(error, hooks);
   }
 
-  hooks.onCommandEnd?.({
+  callHook(hooks.onCommandEnd, {
     type: command.type,
     blockId: command.blockId,
     result: cmdResult,
@@ -271,10 +309,13 @@ export async function runProgram(program, hooks = {}) {
 
   try {
     result = await executeCommandList(program.commands, hooks);
+  } catch (cause) {
+    result = { ok: false, error: unexpectedError(cause) };
+    callHook(hooks.onError, result.error);
   } finally {
     running = false;
     stopRequested = false;
-    hooks.onProgramEnd?.(result);
+    callHook(hooks.onProgramEnd, result);
   }
 
   return result;

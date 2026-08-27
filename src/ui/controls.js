@@ -33,5 +33,5 @@ export function initControls({ onRun, onStop, onReset }) {
   btnStop?.addEventListener("click", onStop);
   btnReset?.addEventListener("click", onReset);
 
-  setControlsState({ run: true, stop: true, reset: true });
+  setControlsState({ run: true, stop: false, reset: true });
 }

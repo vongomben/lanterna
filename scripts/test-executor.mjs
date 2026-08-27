@@ -274,6 +274,35 @@ await withMockCommands(mockCommands, async () => {
   assert(executed.length === MAX_EXECUTED_STEPS, "step limit: capped");
 });
 
+// Unexpected command errors become structured failures and always unlock executor.
+await withMockCommands(
+  {
+    ...mockCommands,
+    async forward() {
+      throw new Error("simulated animation failure");
+    },
+  },
+  async () => {
+    let programEndResult = null;
+    const result = await runProgram(
+      {
+        version: 1,
+        commands: [{ type: "forward", blockId: "x1" }],
+      },
+      {
+        onProgramEnd(value) {
+          programEndResult = value;
+        },
+      },
+    );
+    assert(result.ok === false, "unexpected error: failed safely");
+    assert(result.error?.code === "INTERNAL_ERROR", "unexpected error: code");
+    assert(result.error?.blockId === "x1", "unexpected error: blockId");
+    assert(programEndResult === result, "unexpected error: hook receives failure");
+    assert(isProgramRunning() === false, "unexpected error: executor unlocked");
+  },
+);
+
 void realCommands;
 void DEBUG_EXECUTOR;
 

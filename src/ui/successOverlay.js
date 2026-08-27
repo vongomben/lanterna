@@ -8,6 +8,9 @@ let overlayEl = null;
 /** @type {(() => void) | null} */
 let retryHandler = null;
 
+/** @type {HTMLElement | null} */
+let previouslyFocusedEl = null;
+
 /**
  * @param {() => void} onRetry
  */
@@ -23,13 +26,22 @@ export function initSuccessOverlay(onRetry) {
 }
 
 export function showSuccessOverlay() {
+  previouslyFocusedEl =
+    document.activeElement instanceof HTMLElement
+      ? document.activeElement
+      : null;
   overlayEl?.classList.add("success-overlay--visible");
   overlayEl?.setAttribute("aria-hidden", "false");
+  window.requestAnimationFrame(() => {
+    document.getElementById("btn-success-retry")?.focus();
+  });
 }
 
 export function hideSuccessOverlay() {
   overlayEl?.classList.remove("success-overlay--visible");
   overlayEl?.setAttribute("aria-hidden", "true");
+  previouslyFocusedEl?.focus();
+  previouslyFocusedEl = null;
 }
 
 export function isSuccessOverlayVisible() {

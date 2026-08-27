@@ -6,7 +6,10 @@ import * as Blockly from "blockly/core";
 import { FieldNumber } from "blockly/core";
 import { toolboxDefinition } from "./toolbox.js";
 import { BLOCK_COLOURS } from "./toolbox.js";
-import { loadStarterProgram } from "./starterProgram.js";
+import {
+  loadStarterProgram,
+  resetStarterProgram,
+} from "./starterProgram.js";
 import { setupBlockContextMenu } from "./contextMenu.js";
 
 /** @type {import("blockly").WorkspaceSvg | null} */
@@ -101,15 +104,22 @@ const lanternaTheme = Blockly.Theme.defineTheme("lanterna", {
 
 /**
  * @param {HTMLElement} container
+ * @param {{ onProgramReset?: () => void }} [options]
  * @returns {import("blockly").WorkspaceSvg}
  */
-export function initBlockly(container) {
+export function initBlockly(container, { onProgramReset } = {}) {
   setupBlockContextMenu();
+
+  const useTouchLayout =
+    window.matchMedia("(pointer: coarse)").matches ||
+    window.matchMedia("(max-width: 768px)").matches;
 
   workspace = Blockly.inject(container, {
     toolbox: toolboxDefinition,
     theme: lanternaTheme,
     renderer: "geras",
+    horizontalLayout: useTouchLayout,
+    toolboxPosition: "start",
     grid: {
       spacing: 24,
       length: 3,
@@ -120,9 +130,9 @@ export function initBlockly(container) {
       controls: true,
       wheel: true,
       pinch: true,
-      startScale: 0.95,
+      startScale: useTouchLayout ? 0.82 : 0.95,
       maxScale: 1.4,
-      minScale: 0.7,
+      minScale: useTouchLayout ? 0.6 : 0.7,
       scaleSpeed: 1.08,
     },
     trashcan: true,
@@ -138,8 +148,39 @@ export function initBlockly(container) {
 
   setupWorkspaceResize(container, workspace);
   loadStarterProgram(workspace);
+  setupTrashReset(container, workspace, onProgramReset);
 
   return workspace;
+}
+
+/**
+ * Turn Blockly's trash icon into an explicit reset-to-starter action.
+ * A click is distinct from dropping a block onto the trash.
+ * @param {HTMLElement} container
+ * @param {import("blockly").WorkspaceSvg} ws
+ * @param {(() => void) | undefined} onProgramReset
+ */
+function setupTrashReset(container, ws, onProgramReset) {
+  const nativeTrash = container.querySelector(".blocklyTrash");
+  nativeTrash?.setAttribute("aria-hidden", "true");
+
+  // Prevent duplicate controls if Blockly is initialized again (e.g. HMR).
+  container.querySelectorAll(".blockly-reset-program").forEach((button) => {
+    button.remove();
+  });
+
+  const resetButton = document.createElement("button");
+  resetButton.type = "button";
+  resetButton.className = "blockly-reset-program";
+  resetButton.setAttribute("aria-label", "Ripristina il programma iniziale");
+  resetButton.title = "Ripristina il programma iniziale";
+
+  resetButton.addEventListener("click", () => {
+    resetStarterProgram(ws);
+    onProgramReset?.();
+  });
+
+  container.append(resetButton);
 }
 
 /**
@@ -148,6 +189,11 @@ export function initBlockly(container) {
  */
 function setupWorkspaceResize(container, ws) {
   const resize = () => {
+    const injectionDiv = container.querySelector(":scope > .injectionDiv");
+    if (injectionDiv instanceof HTMLElement) {
+      injectionDiv.style.width = `${container.clientWidth}px`;
+      injectionDiv.style.height = `${container.clientHeight}px`;
+    }
     Blockly.svgResize(ws);
   };
 
@@ -157,7 +203,13 @@ function setupWorkspaceResize(container, ws) {
   }
 
   window.addEventListener("resize", resize);
-  requestAnimationFrame(resize);
+  window.addEventListener("orientationchange", resize);
+
+  // Mobile browsers can finalize flex/grid dimensions over multiple frames.
+  requestAnimationFrame(() => {
+    resize();
+    requestAnimationFrame(resize);
+  });
 }
 
 /** @returns {import("blockly").WorkspaceSvg | null} */
