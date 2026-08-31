@@ -136,19 +136,27 @@ export function initBlockly(container) {
     sounds: false,
   });
 
-  setupWorkspaceResize(container, workspace);
+  setupWorkspaceResize(container);
   loadStarterProgram(workspace);
 
   return workspace;
 }
 
 /**
- * @param {HTMLElement} container
- * @param {import("blockly").WorkspaceSvg} ws
+ * Recalculate Blockly metrics after layout changes (splash dismiss, viewport).
  */
-function setupWorkspaceResize(container, ws) {
+export function resizeBlocklyWorkspace() {
+  if (workspace) {
+    Blockly.svgResize(workspace);
+  }
+}
+
+/**
+ * @param {HTMLElement} container
+ */
+function setupWorkspaceResize(container) {
   const resize = () => {
-    Blockly.svgResize(ws);
+    if (workspace) Blockly.svgResize(workspace);
   };
 
   if (typeof ResizeObserver !== "undefined") {
@@ -157,6 +165,7 @@ function setupWorkspaceResize(container, ws) {
   }
 
   window.addEventListener("resize", resize);
+  window.matchMedia("(max-width: 768px)").addEventListener("change", resize);
   requestAnimationFrame(resize);
 }
 

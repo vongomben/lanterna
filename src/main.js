@@ -2,7 +2,11 @@
  * Entry point — wires UI, KAPLAY and Blockly.
  */
 import { initGame, setKeyboardEnabled, resetLevel } from "./game/game.js";
-import { initBlockly, getBlocklyWorkspace } from "./blockly/blocks.js";
+import {
+  initBlockly,
+  getBlocklyWorkspace,
+  resizeBlocklyWorkspace,
+} from "./blockly/blocks.js";
 import { parseWorkspace } from "./blockly/parser.js";
 import {
   runProgram,
@@ -139,6 +143,7 @@ function bootstrap() {
   initSplashScreen({
     onStart: () => {
       setKeyboardEnabled(keyboardAllowed);
+      resizeBlocklyWorkspace();
     },
   });
 
