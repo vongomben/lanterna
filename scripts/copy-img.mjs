@@ -3,4 +3,5 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
-fs.cpSync(path.join(root, "img"), path.join(root, "dist", "img"), { recursive: true });
+const outDir = process.argv[2] || "dist";
+fs.cpSync(path.join(root, "img"), path.join(root, outDir, "img"), { recursive: true });

@@ -3,6 +3,7 @@
  * No KAPLAY, collision, or Blockly workspace logic.
  */
 import { commands } from "../game/commands.js";
+import { scenarioConfig } from "../data/scenario-config.js";
 
 /** @typedef {import("./parser.js").ProgramCommand} ProgramCommand */
 
@@ -204,7 +205,7 @@ async function executeCommand(command, hooks) {
       code: cmdResult.error?.code ?? "COMMAND_FAILED",
       message:
         cmdResult.error?.code === "MOVEMENT_BLOCKED"
-          ? "Il robot ha incontrato un ostacolo."
+          ? scenarioConfig.copy.errors.obstacle
           : (cmdResult.error?.message ?? "Comando fallito."),
       blockId: command.blockId,
     };

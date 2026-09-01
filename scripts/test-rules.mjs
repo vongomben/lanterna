@@ -1,7 +1,7 @@
 /**
  * Win condition unit tests.
  */
-import { isContainerOnGoal, checkWinCondition } from "../src/game/rules.js";
+import { isPayloadOnGoal, checkWinCondition } from "../src/game/rules.js";
 import { getState, resetState, setMissionCompleted } from "../src/state/gameState.js";
 import { level01 } from "../src/levels/level01.js";
 
@@ -19,25 +19,25 @@ function assert(cond, name) {
 resetState();
 
 assert(
-  isContainerOnGoal(getState(), level01) === false,
+  isPayloadOnGoal(getState(), level01) === false,
   "not on goal at start",
 );
 
 const state = getState();
-state.container.row = level01.goal.row;
-state.container.col = level01.goal.col;
-state.container.carried = false;
+state.payload.row = level01.goal.row;
+state.payload.col = level01.goal.col;
+state.payload.carried = false;
 
-assert(isContainerOnGoal(getState(), level01) === true, "container on goal");
+assert(isPayloadOnGoal(getState(), level01) === true, "payload on goal");
 
-state.container.carried = true;
-state.container.row = null;
-assert(isContainerOnGoal(getState(), level01) === false, "carried not win");
+state.payload.carried = true;
+state.payload.row = null;
+assert(isPayloadOnGoal(getState(), level01) === false, "carried not win");
 
-state.container.carried = false;
-state.container.row = level01.goal.row;
-state.container.col = level01.goal.col - 1;
-assert(isContainerOnGoal(getState(), level01) === false, "adjacent not win");
+state.payload.carried = false;
+state.payload.row = level01.goal.row;
+state.payload.col = level01.goal.col - 1;
+assert(isPayloadOnGoal(getState(), level01) === false, "adjacent not win");
 
 resetState();
 assert(checkWinCondition(level01) === false, "checkWin at start");

@@ -3,9 +3,10 @@
  * Originals in img/ are never used at runtime for gameplay sprites.
  */
 import { scaleToCellFraction, VISUAL_SCALE } from "./grid.js";
+import { usesPlaceholderVisuals } from "../data/scenario-config.js";
 import manifest from "./spriteManifest.json" with { type: "json" };
 
-const IMG = `${import.meta.env.BASE_URL}img`;
+const IMG = `${import.meta.env?.BASE_URL ?? "./"}img`;
 
 /** @param {keyof typeof manifest & string} key */
 function generatedPath(key) {
@@ -18,9 +19,9 @@ function generatedPath(key) {
 export const ASSET_PATHS = Object.freeze({
   robotOpen: generatedPath("robot"),
   robotCarry: generatedPath("robotCarry"),
-  container: generatedPath("container"),
-  containerGlow: generatedPath("containerGlow"),
-  containerOpened: generatedPath("containerOpened"),
+  payload: generatedPath("container"),
+  payloadGlow: generatedPath("containerGlow"),
+  payloadOpened: generatedPath("containerOpened"),
   floorClean: generatedPath("floorClean"),
   floorWorn: generatedPath("floorWorn"),
   startMarker: generatedPath("startMarker"),
@@ -33,9 +34,9 @@ export const ASSET_PATHS = Object.freeze({
 const SPRITE_ENTRIES = [
   ["robot", ASSET_PATHS.robotOpen],
   ["robotCarry", ASSET_PATHS.robotCarry],
-  ["container", ASSET_PATHS.container],
-  ["containerGlow", ASSET_PATHS.containerGlow],
-  ["containerOpened", ASSET_PATHS.containerOpened],
+  ["payload", ASSET_PATHS.payload],
+  ["payloadGlow", ASSET_PATHS.payloadGlow],
+  ["payloadOpened", ASSET_PATHS.payloadOpened],
   ["floorClean", ASSET_PATHS.floorClean],
   ["floorWorn", ASSET_PATHS.floorWorn],
   ["startMarker", ASSET_PATHS.startMarker],
@@ -96,6 +97,10 @@ export function floorScale() {
  * @param {import("kaplay").KAPLAYCtx} k
  */
 export function loadGameAssets(k) {
+  if (usesPlaceholderVisuals()) {
+    return;
+  }
+
   for (const [name, path] of SPRITE_ENTRIES) {
     k.loadSprite(name, path, { filter: "nearest" });
   }

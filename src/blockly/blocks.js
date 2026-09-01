@@ -1,84 +1,96 @@
 /**
- * Codice Lanterna — custom Blockly block definitions (editor only).
- * No gameplay logic, no code generation, no imports from game/.
+ * Custom Blockly block definitions (editor only).
+ * Labels come from the active scenario config.
  */
 import * as Blockly from "blockly/core";
 import { FieldNumber } from "blockly/core";
-import { toolboxDefinition } from "./toolbox.js";
-import { BLOCK_COLOURS } from "./toolbox.js";
+import { buildToolbox, BLOCK_COLOURS } from "./toolbox.js";
 import { loadStarterProgram } from "./starterProgram.js";
 import { setupBlockContextMenu } from "./contextMenu.js";
+import { scenarioConfig } from "../data/scenario-config.js";
 
 /** @type {import("blockly").WorkspaceSvg | null} */
 let workspace = null;
 
-Blockly.Blocks["lanterna_grab"] = {
-  init() {
-    this.appendDummyInput().appendField("PRENDI CONTAINER");
-    this.setNextStatement(true, null);
-    this.setColour(BLOCK_COLOURS.action);
-    this.setTooltip("Afferra il container con la pinza del robot");
-    this.setHelpUrl("");
-  },
-};
+function registerBlocks() {
+  const { blocks } = scenarioConfig.copy;
 
-Blockly.Blocks["lanterna_forward"] = {
-  init() {
-    this.appendDummyInput().appendField("▲").appendField("AVANTI");
-    this.setPreviousStatement(true, null);
-    this.setNextStatement(true, null);
-    this.setColour(BLOCK_COLOURS.movement);
-    this.setTooltip("Muovi il robot di una cella nella direzione della pinza");
-    this.setHelpUrl("");
-  },
-};
+  Blockly.Blocks["lanterna_grab"] = {
+    init() {
+      this.appendDummyInput().appendField(blocks.grab);
+      this.setNextStatement(true, null);
+      this.setColour(BLOCK_COLOURS.action);
+      this.setTooltip(blocks.grabTooltip);
+      this.setHelpUrl("");
+    },
+  };
 
-Blockly.Blocks["lanterna_turn_right"] = {
-  init() {
-    this.appendDummyInput().appendField("GIRA A DESTRA");
-    this.setPreviousStatement(true, null);
-    this.setNextStatement(true, null);
-    this.setColour(BLOCK_COLOURS.turn);
-    this.setTooltip("Ruota il robot di 90° verso destra");
-    this.setHelpUrl("");
-  },
-};
+  Blockly.Blocks["lanterna_forward"] = {
+    init() {
+      this.appendDummyInput().appendField("▲").appendField(blocks.forward);
+      this.setPreviousStatement(true, null);
+      this.setNextStatement(true, null);
+      this.setColour(BLOCK_COLOURS.movement);
+      this.setTooltip(blocks.forwardTooltip);
+      this.setHelpUrl("");
+    },
+  };
 
-Blockly.Blocks["lanterna_turn_left"] = {
-  init() {
-    this.appendDummyInput().appendField("GIRA A SINISTRA");
-    this.setPreviousStatement(true, null);
-    this.setNextStatement(true, null);
-    this.setColour(BLOCK_COLOURS.turn);
-    this.setTooltip("Ruota il robot di 90° verso sinistra");
-    this.setHelpUrl("");
-  },
-};
+  Blockly.Blocks["lanterna_turn_right"] = {
+    init() {
+      this.appendDummyInput().appendField(blocks.turnRight);
+      this.setPreviousStatement(true, null);
+      this.setNextStatement(true, null);
+      this.setColour(BLOCK_COLOURS.turn);
+      this.setTooltip(blocks.turnRightTooltip);
+      this.setHelpUrl("");
+    },
+  };
 
-Blockly.Blocks["lanterna_repeat"] = {
-  init() {
-    this.appendDummyInput()
-      .appendField("RIPETI")
-      .appendField(new FieldNumber(3, 1, 20), "TIMES")
-      .appendField("VOLTE");
-    this.appendStatementInput("DO");
-    this.setPreviousStatement(true, null);
-    this.setNextStatement(true, null);
-    this.setColour(BLOCK_COLOURS.control);
-    this.setTooltip("Ripete i blocchi interni un numero di volte");
-    this.setHelpUrl("");
-  },
-};
+  Blockly.Blocks["lanterna_turn_left"] = {
+    init() {
+      this.appendDummyInput().appendField(blocks.turnLeft);
+      this.setPreviousStatement(true, null);
+      this.setNextStatement(true, null);
+      this.setColour(BLOCK_COLOURS.turn);
+      this.setTooltip(blocks.turnLeftTooltip);
+      this.setHelpUrl("");
+    },
+  };
 
-Blockly.Blocks["lanterna_release"] = {
-  init() {
-    this.appendDummyInput().appendField("RILASCIA CONTAINER");
-    this.setPreviousStatement(true, null);
-    this.setColour(BLOCK_COLOURS.action);
-    this.setTooltip("Rilascia il container trasportato");
-    this.setHelpUrl("");
-  },
-};
+  Blockly.Blocks["lanterna_repeat"] = {
+    init() {
+      this.appendDummyInput()
+        .appendField(blocks.repeat)
+        .appendField(new FieldNumber(3, 1, 20), "TIMES")
+        .appendField(blocks.times);
+      this.appendStatementInput("DO");
+      this.setPreviousStatement(true, null);
+      this.setNextStatement(true, null);
+      this.setColour(BLOCK_COLOURS.control);
+      this.setTooltip(blocks.repeatTooltip);
+      this.setHelpUrl("");
+    },
+  };
+
+  Blockly.Blocks["lanterna_release"] = {
+    init() {
+      this.appendDummyInput().appendField(blocks.release);
+      this.setPreviousStatement(true, null);
+      this.setColour(BLOCK_COLOURS.action);
+      this.setTooltip(blocks.releaseTooltip);
+      this.setHelpUrl("");
+    },
+  };
+}
+
+registerBlocks();
+
+const MOBILE_QUERY = "(max-width: 768px)";
+
+function isMobileLayout() {
+  return window.matchMedia(MOBILE_QUERY).matches;
+}
 
 const lanternaTheme = Blockly.Theme.defineTheme("lanterna", {
   base: Blockly.Themes.Classic,
@@ -103,13 +115,13 @@ const lanternaTheme = Blockly.Theme.defineTheme("lanterna", {
  * @param {HTMLElement} container
  * @returns {import("blockly").WorkspaceSvg}
  */
-export function initBlockly(container) {
-  setupBlockContextMenu();
-
-  workspace = Blockly.inject(container, {
-    toolbox: toolboxDefinition,
+function injectWorkspace(container) {
+  return Blockly.inject(container, {
+    toolbox: buildToolbox(),
     theme: lanternaTheme,
     renderer: "geras",
+    horizontalLayout: isMobileLayout(),
+    toolboxPosition: "start",
     grid: {
       spacing: 24,
       length: 3,
@@ -135,9 +147,37 @@ export function initBlockly(container) {
     },
     sounds: false,
   });
+}
 
+/**
+ * @param {HTMLElement} container
+ */
+function reinjectForViewport(container) {
+  if (!workspace) return;
+
+  const state = Blockly.serialization.workspaces.save(workspace);
+  workspace.dispose();
+  workspace = injectWorkspace(container);
+  Blockly.serialization.workspaces.load(state, workspace);
+  requestAnimationFrame(() => {
+    if (workspace) Blockly.svgResize(workspace);
+  });
+}
+
+/**
+ * @param {HTMLElement} container
+ * @returns {import("blockly").WorkspaceSvg}
+ */
+export function initBlockly(container) {
+  setupBlockContextMenu();
+
+  workspace = injectWorkspace(container);
   setupWorkspaceResize(container);
   loadStarterProgram(workspace);
+
+  window.matchMedia(MOBILE_QUERY).addEventListener("change", () => {
+    reinjectForViewport(container);
+  });
 
   return workspace;
 }

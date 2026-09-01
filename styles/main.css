@@ -209,6 +209,15 @@ body {
   min-width: 9.5rem;
 }
 
+.blockly-viewport .blocklyToolboxDiv[layout="h"] {
+  min-width: 0;
+  width: 100%;
+}
+
+.blockly-viewport .blocklyToolboxDiv[layout="h"] .blocklyTreeRow {
+  padding-inline: 1rem;
+}
+
 .blockly-viewport .blocklyFlyoutButton {
   min-height: 2.5rem;
 }
@@ -313,7 +322,7 @@ body {
   }
 
   .blockly-viewport .blocklyToolboxDiv {
-    min-width: 7.5rem;
+    min-width: 0;
   }
 
   .btn {
@@ -608,6 +617,44 @@ body {
   pointer-events: none;
   user-select: none;
   z-index: 1;
+}
+
+.splash-placeholder {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1.25rem;
+  background:
+    repeating-linear-gradient(
+      -45deg,
+      rgba(62, 207, 201, 0.12) 0 12px,
+      rgba(15, 34, 48, 0.2) 12px 24px
+    );
+}
+
+.splash-placeholder[hidden] {
+  display: none;
+}
+
+.splash-placeholder span {
+  max-width: 12rem;
+  padding: 0.75rem 1rem;
+  border: 2px dashed var(--color-cyan);
+  border-radius: var(--radius);
+  background: rgba(7, 18, 28, 0.72);
+  color: var(--color-cyan);
+  font-size: 0.95rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-align: center;
+  text-transform: uppercase;
+}
+
+.splash-lanterna--placeholder {
+  background: linear-gradient(180deg, #0c3a42 0%, #12324a 45%, #1a2840 100%);
 }
 
 @media (max-width: 768px) {

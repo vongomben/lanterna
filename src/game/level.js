@@ -1,5 +1,5 @@
 /**
- * Level rendering — floor, markers, edge walls (primitives), props, container.
+ * Level rendering — floor, markers, edge walls, props, payload.
  */
 import {
   TILE_SIZE,
@@ -17,8 +17,9 @@ import {
   spriteScale,
   floorScale,
 } from "./assets.js";
-import { createContainer } from "./container.js";
+import { createPayload } from "./payload.js";
 import { getState } from "../state/gameState.js";
+import { scenarioConfig, usesPlaceholderVisuals } from "../data/scenario-config.js";
 
 /** @enum {number} */
 const Z = {
@@ -26,7 +27,7 @@ const Z = {
   MARKER: 1,
   WALL: 2,
   PROP: 3,
-  CONTAINER: 4,
+  PAYLOAD: 4,
   ROBOT: 5,
   FX: 10,
   DEBUG: 20,
@@ -38,16 +39,22 @@ const WALL_BODY = [18, 42, 56];
 const WALL_HIGHLIGHT = [42, 88, 110];
 const WALL_ACCENT = [232, 146, 10];
 
+const PROP_PLACEHOLDER_COLORS = {
+  crate_wood: [180, 140, 80],
+  traffic_cone: [220, 90, 40],
+  technical_terminal: [90, 140, 160],
+};
+
 /**
  * @param {import("kaplay").KAPLAYCtx} k
- * @param {import("../levels/level01.js").level01} level
+ * @param {ReturnType<typeof import("../data/scenario-config.js").getActiveLevel>} level
  */
 export function renderLevel(k, level) {
   renderFloor(k, level);
   renderMarkers(k, level);
   renderEdgeWalls(k, level);
   renderProps(k, level);
-  createContainer(k, level.container.row, level.container.col);
+  createPayload(k, level.payload.row, level.payload.col);
 
   if (DEBUG_GRID) {
     renderDebugOverlay(k, level);
@@ -59,6 +66,24 @@ export function renderLevel(k, level) {
  * @param {{ rows: number, cols: number }} level
  */
 function renderFloor(k, level) {
+  if (usesPlaceholderVisuals()) {
+    for (let row = 0; row < level.rows; row++) {
+      for (let col = 0; col < level.cols; col++) {
+        const { x, y } = gridToWorld(row, col);
+        const shade = (row + col) % 2 === 0 ? 42 : 50;
+        k.add([
+          k.rect(TILE_SIZE - 1, TILE_SIZE - 1),
+          k.pos(x, y),
+          k.anchor("center"),
+          k.color(shade, shade + 8, shade + 14),
+          k.z(Z.FLOOR),
+          "floor-tile",
+        ]);
+      }
+    }
+    return;
+  }
+
   const scale = floorScale();
 
   for (let row = 0; row < level.rows; row++) {
@@ -84,20 +109,48 @@ function renderFloor(k, level) {
  * @param {{ start: { row: number, col: number }, goal: { row: number, col: number } }} level
  */
 function renderMarkers(k, level) {
-  drawMarker(k, level.start.row, level.start.col, "startMarker");
-  drawMarker(k, level.goal.row, level.goal.col, "goalMarker");
+  drawMarker(k, level.start.row, level.start.col, "start");
+  drawMarker(k, level.goal.row, level.goal.col, "goal");
 }
 
 /**
  * @param {import("kaplay").KAPLAYCtx} k
  * @param {number} row
  * @param {number} col
- * @param {"startMarker"|"goalMarker"} manifestKey
+ * @param {"start"|"goal"} kind
  */
-function drawMarker(k, row, col, manifestKey) {
+function drawMarker(k, row, col, kind) {
   const { x, y } = gridToWorld(row, col);
+
+  if (usesPlaceholderVisuals()) {
+    const isStart = kind === "start";
+    const label = isStart
+      ? scenarioConfig.copy.placeholders.start
+      : scenarioConfig.copy.placeholders.goal;
+    const color = isStart ? [61, 154, 90] : [62, 207, 201];
+
+    k.add([
+      k.rect(TILE_SIZE * 0.82, TILE_SIZE * 0.82),
+      k.pos(x, y),
+      k.anchor("center"),
+      k.color(...color),
+      k.opacity(0.35),
+      k.z(Z.MARKER),
+      "marker",
+    ]);
+    k.add([
+      k.text(label, { size: 8, width: TILE_SIZE - 4, align: "center" }),
+      k.pos(x, y),
+      k.anchor("center"),
+      k.color(247, 249, 251),
+      k.z(Z.MARKER + 0.1),
+    ]);
+    return;
+  }
+
+  const manifestKey = kind === "start" ? "startMarker" : "goalMarker";
   k.add([
-    k.sprite(manifestKey === "startMarker" ? "startMarker" : "goalMarker"),
+    k.sprite(manifestKey),
     k.pos(x, y),
     k.anchor("center"),
     k.scale(spriteScale(manifestKey, VISUAL_SCALE.marker)),
@@ -169,17 +222,39 @@ function drawEdgeWall(k, row, col, side) {
 
 /**
  * @param {import("kaplay").KAPLAYCtx} k
- * @param {{ props?: Array<{ row: number, col: number, type: string }> }} level
+ * @param {{ props?: Array<{ row: number, col: number, type: string, label?: string }> }} level
  */
 function renderProps(k, level) {
   for (const prop of level.props ?? []) {
+    const { x, y } = gridToWorld(prop.row, prop.col);
+
+    if (usesPlaceholderVisuals()) {
+      const color = PROP_PLACEHOLDER_COLORS[prop.type] ?? [120, 120, 120];
+      const label = prop.label ?? prop.type;
+      k.add([
+        k.rect(TILE_SIZE * 0.5, TILE_SIZE * 0.5),
+        k.pos(x, y),
+        k.anchor("center"),
+        k.color(...color),
+        k.z(Z.PROP),
+        "prop",
+      ]);
+      k.add([
+        k.text(label, { size: 7, width: TILE_SIZE - 8, align: "center" }),
+        k.pos(x, y),
+        k.anchor("center"),
+        k.color(247, 249, 251),
+        k.z(Z.PROP + 0.1),
+      ]);
+      continue;
+    }
+
     const spriteName = PROP_SPRITE_MAP[prop.type];
     const visualKey = PROP_VISUAL_SCALE[prop.type];
     const manifestKey = PROP_MANIFEST_KEY[prop.type];
     if (!spriteName || !visualKey || !manifestKey) continue;
 
     const scale = spriteScale(manifestKey, VISUAL_SCALE[visualKey]);
-    const { x, y } = gridToWorld(prop.row, prop.col);
 
     k.add([
       k.sprite(spriteName),

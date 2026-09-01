@@ -5,6 +5,8 @@ import { fileURLToPath } from "node:url";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const imgDir = path.resolve(__dirname, "img");
+const scenario = process.env.VITE_SCENARIO === "nautica" ? "nautica" : "lanterna";
+const outDir = process.env.VITE_OUT_DIR || "dist";
 
 /** Serve /img from project root in dev (folder stays outside public/). */
 function imgStaticPlugin() {
@@ -31,9 +33,18 @@ export default defineConfig({
 
   plugins: [imgStaticPlugin()],
 
+  define: {
+    "import.meta.env.VITE_SCENARIO": JSON.stringify(scenario),
+  },
+
   resolve: {
     alias: {
       "@img": imgDir,
     },
+  },
+
+  build: {
+    outDir,
+    emptyOutDir: true,
   },
 });

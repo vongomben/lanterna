@@ -10,7 +10,7 @@
     <div id="app">
       <header class="app-header">
         <div class="app-header__brand">
-          <h1 class="app-header__title">CODICE LANTERNA</h1>
+          <h1 class="app-header__title" id="app-title">CODICE LANTERNA</h1>
         </div>
         <p class="app-header__mission" id="mission-text">
           Estrai il container dal deposito
@@ -33,7 +33,7 @@
         </section>
 
         <section class="panel panel--blockly" aria-label="Editor Blockly">
-          <p class="blockly-hint">
+          <p class="blockly-hint" id="blockly-hint">
             Completa il programma inserendo i comandi tra PRENDI e RILASCIA.
           </p>
           <div class="blockly-viewport" id="blockly-root"></div>
@@ -58,7 +58,7 @@
           <h2 class="success-overlay__title" id="success-title">
             MISSIONE COMPLETATA
           </h2>
-          <p class="success-overlay__message">
+          <p class="success-overlay__message" id="success-message">
             Container estratto dal deposito.
           </p>
           <dl class="success-overlay__stats">
@@ -88,14 +88,15 @@
         <div class="splash-screen__inner">
           <div class="splash-screen__content">
             <h1 id="splash-title" class="splash-screen__title">CODICE LANTERNA</h1>
-            <p class="splash-screen__credits">
+            <p class="splash-screen__credits" id="splash-credits">
               da un'idea di Keila, Leonardo, Juan, Matteo
             </p>
-            <p class="splash-screen__cta">PREMI UN TASTO PER INIZIARE</p>
+            <p class="splash-screen__cta" id="splash-cta">PREMI UN TASTO PER INIZIARE</p>
           </div>
-          <div class="splash-lanterna" aria-hidden="true">
+          <div class="splash-lanterna" id="splash-art" aria-hidden="true">
             <img
               class="splash-lanterna__bg"
+              id="splash-bg"
               src="/img/torre-sfondo.png"
               alt=""
               width="640"
@@ -104,12 +105,16 @@
             />
             <img
               class="splash-lanterna__tower"
+              id="splash-tower"
               src="/img/torre.png"
               alt="La Lanterna di Genova"
               width="640"
               height="960"
               decoding="async"
             />
+            <div class="splash-placeholder" id="splash-placeholder" hidden>
+              <span id="splash-placeholder-label">cella produttiva 4.0</span>
+            </div>
           </div>
         </div>
       </div>

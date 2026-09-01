@@ -1,16 +1,16 @@
 /**
  * Logical game state — independent from KAPLAY.
  */
-import { level01 } from "../levels/level01.js";
+import { getActiveLevel } from "../data/scenario-config.js";
 
 /** @typedef {"playing"|"completed"} MissionStatus */
 /** @typedef {"up"|"right"|"down"|"left"} Direction */
 
 /**
- * Container on the grid has row/col; while carried row/col are null
+ * Payload on the grid has row/col; while carried row/col are null
  * (robot is the sole carrier — no duplicate logical position).
  *
- * @typedef {Object} ContainerState
+ * @typedef {Object} PayloadState
  * @property {number | null} row
  * @property {number | null} col
  * @property {boolean} carried
@@ -19,7 +19,7 @@ import { level01 } from "../levels/level01.js";
 /**
  * @typedef {Object} GameState
  * @property {{ row: number, col: number, direction: Direction, carrying: boolean, moving: boolean }} robot
- * @property {ContainerState} container
+ * @property {PayloadState} payload
  * @property {{ row: number, col: number }} start
  * @property {{ row: number, col: number }} goal
  * @property {{ status: MissionStatus }} mission
@@ -27,11 +27,11 @@ import { level01 } from "../levels/level01.js";
 
 /** @returns {GameState} */
 export function createInitialState() {
-  return initFromLevel(level01);
+  return initFromLevel(getActiveLevel());
 }
 
 /**
- * @param {typeof level01} level
+ * @param {ReturnType<typeof getActiveLevel>} level
  * @returns {GameState}
  */
 export function initFromLevel(level) {
@@ -43,9 +43,9 @@ export function initFromLevel(level) {
       carrying: false,
       moving: false,
     },
-    container: {
-      row: level.container.row,
-      col: level.container.col,
+    payload: {
+      row: level.payload.row,
+      col: level.payload.col,
       carried: false,
     },
     start: { row: level.start.row, col: level.start.col },

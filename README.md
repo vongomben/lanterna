@@ -1,10 +1,19 @@
 # Codice Lanterna
 
-Videogioco web di coding visuale a blocchi (Blockly + Kaplay): programma un robot/gripper per estrarre un container dal deposito del Porto di Genova e portarlo dal punto **A** al punto **B**.
+Motore web di coding visuale a blocchi (Blockly + Kaplay): programmi un robot/gripper per spostare un oggetto dal punto **A** al punto **B**.
+
+Un solo repository, **due giochi** (stesso motore, contenuti diversi):
+
+| Gioco | Config | Build | Cartella sul sito |
+| --- | --- | --- | --- |
+| **Codice Lanterna** (Porto di Genova, container) | `src/data/scenario-config.lanterna.js` | `npm run build` → `dist/` | `its-your-future/codice-lanterna/` |
+| **Missione Nautica** (cella 4.0, componente nautico; sprite placeholder) | `src/data/scenario-config.nautica.js` | `npm run build:nautica` → `dist-nautica/` | `its-your-future/missione-nautica/` |
+
+Non c’è un selettore in-game: ogni comando di build **congela** una skin. Chi apre `/codice-lanterna/` vede il porto; chi apre `/missione-nautica/` vede il cantiere.
 
 Parte del percorso [IT'S YOUR FUTURE](https://github.com/vongomben/its-your-future).
 
-- **Gioco online:** [vongomben.github.io/its-your-future/codice-lanterna/](https://vongomben.github.io/its-your-future/codice-lanterna/)
+- **Lanterna online:** [vongomben.github.io/its-your-future/codice-lanterna/](https://vongomben.github.io/its-your-future/codice-lanterna/)
 - **Build hostata su GitHub:** [its-your-future/codice-lanterna](https://github.com/vongomben/its-your-future/tree/main/codice-lanterna)
 
 ## Requisiti
@@ -22,60 +31,83 @@ npm run dev
 
 Apri l’URL stampato da Vite (di solito [http://localhost:5173](http://localhost:5173)).
 
-Altri comandi utili:
-
 | Comando | Cosa fa |
 |---------|---------|
-| `npm run build` | Prepara gli asset, genera la build di produzione in `dist/` e copia `img/` |
-| `npm run preview` | Serve in locale la cartella `dist/` (utile per verificare la build prima del deploy) |
+| `npm run dev` / `npm run dev:lanterna` | Skin **Codice Lanterna** (porto) |
+| `npm run dev:nautica` | Skin **Missione Nautica** (placeholder) |
+| `npm run build` | Lanterna in `dist/` (deploy Jekyll invariato) |
+| `npm run build:lanterna` | Lanterna in `dist-lanterna/` (affiancata, non tocca `dist/`) |
+| `npm run build:nautica` | Nautica in `dist-nautica/` |
+| `npm run preview` | Serve `dist/` in locale |
 | `npm run trim-assets` | Rigenera gli sprite ritagliati in `img/generated/` |
 
-## Build di produzione
+La scelta della skin avviene con `VITE_SCENARIO=lanterna|nautica` (la impostano gli script npm; su Windows non serve esportare a mano la variabile).
+
+## Come generare i due giochi
+
+Dalla cartella `lanterna`:
 
 ```powershell
-npm run build
+npm run build          # → dist/            Codice Lanterna
+npm run build:nautica  # → dist-nautica/    Missione Nautica
 ```
 
-L’output finisce in `dist/` (HTML, CSS/JS in `assets/`, immagini in `img/`).  
-`vite.config.js` usa `base: "./"`, così i path relativi funzionano anche sotto una sottocartella come `/its-your-future/codice-lanterna/`.
+Poi copia **manualmente** ciascuna cartella in una sottocartella diversa di `its-your-future` (stessa convenzione di sempre: `base: "./"`).
+
+Per un **terzo** titolo: nuovo file `src/data/scenario-config.qualcosa.js` + uno script `build:qualcosa`. Il motore (`src/game/`, `src/blockly/`) non si tocca.
+
+## Dove si personalizza il contenuto
+
+| Cosa | File |
+| --- | --- |
+| Testi, missione, blocchi, sprite Lanterna | `src/data/scenario-config.lanterna.js` |
+| Testi, missione, placeholder Nautica | `src/data/scenario-config.nautica.js` |
+| Quale config è attiva | `src/data/scenario-config.js` (legge `VITE_SCENARIO`) |
+
+**Non toccare** per un nuovo tema: logica Blockly, collisioni, movimento. Cambia solo la config.
+
+Missione Nautica usa ancora **placeholder** (rettangoli etichettati). Gli asset grafici definitivi si aggiungono dopo in `sprite` della config nautica.
 
 ## Hosting su GitHub (its-your-future)
 
-Il gioco non è pubblicato come sito Pages a sé: la build statica viene copiata nella cartella `codice-lanterna/` del repository [vongomben/its-your-future](https://github.com/vongomben/its-your-future), già hostato su GitHub Pages.
+I giochi non sono siti Pages a sé: la build statica si copia in una sottocartella del repository [vongomben/its-your-future](https://github.com/vongomben/its-your-future).
 
-Procedura (dopo `npm run build`):
+### Codice Lanterna (`dist/` → `codice-lanterna/`)
 
-1. Clona (o aggiorna) il repo del sito, se non ce l’hai già in locale:
+```powershell
+npm run build
 
-   ```powershell
-   git clone https://github.com/vongomben/its-your-future.git
-   ```
+$src = "D:\davide-productions\26-06-11_Liguria-Chapter-02\github2\lanterna\dist"
+$dst = "D:\davide-productions\26-06-11_Liguria-Chapter-02\github2\its-your-future\codice-lanterna"
 
-2. Sostituisci il contenuto di `its-your-future/codice-lanterna/` con quello di `dist/` di questo progetto.  
-   Esempio da PowerShell (adatta i percorsi):
+Remove-Item "$dst\*" -Recurse -Force
+Copy-Item "$src\*" $dst -Recurse
+```
 
-   ```powershell
-   $src = "D:\davide-productions\26-06-11_Liguria-Chapter-02\github2\lanterna\dist"
-   $dst = "D:\davide-productions\26-06-11_Liguria-Chapter-02\github2\its-your-future\codice-lanterna"
+Poi nel repo `its-your-future`: `git add codice-lanterna`, commit, push.  
+URL: [https://vongomben.github.io/its-your-future/codice-lanterna/](https://vongomben.github.io/its-your-future/codice-lanterna/)
 
-   Remove-Item "$dst\*" -Recurse -Force
-   Copy-Item "$src\*" $dst -Recurse
-   ```
+La scheda didattica è in `_progetti/codice-lanterna.md`.
 
-3. Nel repository `its-your-future`, committa e pusha su `main`:
+### Missione Nautica (`dist-nautica/` → `missione-nautica/`)
 
-   ```powershell
-   Set-Location "D:\davide-productions\26-06-11_Liguria-Chapter-02\github2\its-your-future"
-   git add codice-lanterna
-   git commit -m "Update Codice Lanterna build"
-   git push
-   ```
+Stesso schema, cartella diversa. Crea `missione-nautica/` sul sito se non esiste ancora.
 
-4. Dopo il deploy di GitHub Pages, il gioco è disponibile su:
+```powershell
+npm run build:nautica
 
-   [https://vongomben.github.io/its-your-future/codice-lanterna/](https://vongomben.github.io/its-your-future/codice-lanterna/)
+$src = "D:\davide-productions\26-06-11_Liguria-Chapter-02\github2\lanterna\dist-nautica"
+$dst = "D:\davide-productions\26-06-11_Liguria-Chapter-02\github2\its-your-future\missione-nautica"
 
-La scheda didattica del progetto è in `_progetti/codice-lanterna.md` e punta a `/codice-lanterna/` tramite `relative_url`.
+New-Item -ItemType Directory -Force -Path $dst | Out-Null
+Remove-Item "$dst\*" -Recurse -Force -ErrorAction SilentlyContinue
+Copy-Item "$src\*" $dst -Recurse
+```
+
+Poi: `git add missione-nautica`, commit, push.  
+URL previsto: `https://vongomben.github.io/its-your-future/missione-nautica/`
+
+Serve anche una scheda in `_progetti/` (come per Lanterna) se il gioco deve comparire nel catalogo del sito.
 
 ## Stack
 

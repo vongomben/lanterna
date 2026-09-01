@@ -9,8 +9,12 @@
     "test:executor": "node scripts/test-executor.mjs",
     "test:rules": "node scripts/test-rules.mjs",
     "test:session": "node scripts/test-session.mjs",
-    "dev": "npm run trim-assets && vite",
-    "build": "npm run trim-assets && vite build && node scripts/copy-img.mjs",
+    "dev": "npm run trim-assets && node scripts/run-vite.mjs lanterna dev",
+    "dev:lanterna": "npm run trim-assets && node scripts/run-vite.mjs lanterna dev",
+    "dev:nautica": "npm run trim-assets && node scripts/run-vite.mjs nautica dev",
+    "build": "npm run trim-assets && node scripts/run-vite.mjs lanterna build dist",
+    "build:lanterna": "npm run trim-assets && node scripts/run-vite.mjs lanterna build dist-lanterna",
+    "build:nautica": "npm run trim-assets && node scripts/run-vite.mjs nautica build dist-nautica",
     "preview": "vite preview"
   },
   "dependencies": {

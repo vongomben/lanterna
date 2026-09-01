@@ -2,13 +2,13 @@
  * KAPLAY init, level scene, keyboard debug controls, level reset.
  */
 import kaplay from "kaplay";
-import { level01 } from "../levels/level01.js";
+import { getActiveLevel } from "../data/scenario-config.js";
 import { resetState } from "../state/gameState.js";
 import { initCollision } from "./collision.js";
 import { loadGameAssets } from "./assets.js";
 import { renderLevel } from "./level.js";
 import { createRobot, rebuildRobotVisual } from "./robot.js";
-import { resetContainerVisual, syncContainerVisual } from "./container.js";
+import { resetPayloadVisual, syncPayloadVisual } from "./payload.js";
 import { commands } from "./commands.js";
 import { getBoardWidth, getBoardHeight } from "./grid.js";
 import { showStatus } from "../ui/messages.js";
@@ -20,8 +20,9 @@ let k = null;
  * @param {HTMLElement} root
  */
 export function initGame(root) {
-  const boardW = getBoardWidth(level01.cols);
-  const boardH = getBoardHeight(level01.rows);
+  const level = getActiveLevel();
+  const boardW = getBoardWidth(level.cols);
+  const boardH = getBoardHeight(level.rows);
 
   k = kaplay({
     global: false,
@@ -37,28 +38,29 @@ export function initGame(root) {
 
   loadGameAssets(k);
 
-  k.scene("depot", () => {
-    startDepotScene();
+  k.scene("level", () => {
+    startLevelScene();
   });
 
-  k.go("depot");
+  k.go("level");
   return k;
 }
 
-function startDepotScene() {
+function startLevelScene() {
+  const level = getActiveLevel();
   resetState();
-  initCollision(level01);
-  renderLevel(k, level01);
+  initCollision(level);
+  renderLevel(k, level);
   createRobot(k);
   setupKeyboard(k);
 }
 
-/** Reset simulation to level01 initial state (Blockly program unchanged). */
+/** Reset simulation to the active level initial state (Blockly program unchanged). */
 export function resetLevel() {
   resetState();
   rebuildRobotVisual();
-  resetContainerVisual();
-  syncContainerVisual();
+  resetPayloadVisual();
+  syncPayloadVisual();
 }
 
 /** @type {() => boolean} */

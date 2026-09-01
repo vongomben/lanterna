@@ -37,6 +37,8 @@ import {
   updateSessionDisplay,
 } from "./ui/sessionDisplay.js";
 import { initSplashScreen, isSplashActive } from "./ui/splashScreen.js";
+import { scenarioConfig } from "./data/scenario-config.js";
+import { applyScenarioToDom } from "./ui/applyScenario.js";
 
 const DEBUG_PARSE = true;
 
@@ -47,7 +49,7 @@ const DEBUG_PARSE = true;
 function executorErrorMessage(error) {
   switch (error.code) {
     case "MOVEMENT_BLOCKED":
-      return "Movimento bloccato.";
+      return scenarioConfig.copy.status.movementBlocked;
     case "PROGRAM_STOPPED":
       return "Programma interrotto.";
     case "PROGRAM_TOO_LONG":
@@ -102,7 +104,7 @@ async function handleLevelReset() {
   resetLevel();
   applyPlayingUi();
   updateSessionDisplay();
-  showStatus("Livello reimpostato.");
+  showStatus(scenarioConfig.copy.status.levelReset);
 }
 
 /** RIPROVA — nuova sessione completa. */
@@ -121,10 +123,15 @@ async function handleNewSession() {
   resetLevel();
   applyPlayingUi();
   updateSessionDisplay();
-  showStatus("Nuova sessione.");
+  showStatus(scenarioConfig.copy.status.newSession);
 }
 
 function bootstrap() {
+  const scenarioId =
+    import.meta.env.VITE_SCENARIO === "nautica" ? "nautica" : "lanterna";
+  applyScenarioToDom(scenarioConfig);
+  document.documentElement.dataset.scenarioId = scenarioId;
+
   const gameRoot = document.getElementById("game-root");
   const blocklyRoot = document.getElementById("blockly-root");
 
@@ -153,14 +160,14 @@ function bootstrap() {
 
       const workspace = getBlocklyWorkspace();
       if (!workspace) {
-        console.warn("[Codice Lanterna] Blockly workspace not ready");
+        console.warn(`[${scenarioConfig.meta.titolo}] Blockly workspace not ready`);
         return;
       }
 
       const parsed = parseWorkspace(workspace);
 
       if (DEBUG_PARSE) {
-        console.log("[Codice Lanterna] parseWorkspace:", parsed);
+        console.log(`[${scenarioConfig.meta.titolo}] parseWorkspace:`, parsed);
         console.log(JSON.stringify(parsed, null, 2));
       }
 
@@ -185,7 +192,7 @@ function bootstrap() {
 
       if (result.ok && result.terminal && result.event === "MISSION_COMPLETED") {
         completeSession();
-        showStatus("Container estratto. Missione completata.");
+        showStatus(scenarioConfig.copy.status.missionComplete);
         applyMissionCompletedUi();
         if (DEBUG_EXECUTOR) {
           console.log("[Executor] mission completed");
@@ -199,7 +206,7 @@ function bootstrap() {
       );
 
       if (result.ok) {
-        showStatus("Programma completato.");
+        showStatus(scenarioConfig.copy.status.programComplete);
       } else {
         showStatus(executorErrorMessage(result.error));
         if (DEBUG_EXECUTOR) {

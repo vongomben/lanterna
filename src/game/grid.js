@@ -11,7 +11,7 @@ export const TILE_SIZE = 64;
  */
 export const VISUAL_SCALE = Object.freeze({
   robot: 0.76,
-  container: 0.55,
+  payload: 0.55,
   marker: 0.86,
   crate: 0.45,
   terminal: 0.38,

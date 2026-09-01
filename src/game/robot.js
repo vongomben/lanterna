@@ -1,10 +1,11 @@
 /**
  * Robot entity — visual representation synced from gameState.
  */
-import { gridToWorld, directionToAngle, VISUAL_SCALE } from "./grid.js";
+import { gridToWorld, directionToAngle, TILE_SIZE, VISUAL_SCALE } from "./grid.js";
 import { getState } from "../state/gameState.js";
 import { spriteScale } from "./assets.js";
 import { Z } from "./level.js";
+import { scenarioConfig, usesPlaceholderVisuals } from "../data/scenario-config.js";
 
 const MOVE_DURATION = 0.3;
 const TURN_DURATION = 0.2;
@@ -13,8 +14,23 @@ const ACTION_DURATION = 0.28;
 /** @type {import("kaplay").GameObj | null} */
 let robotObj = null;
 
+/** @type {import("kaplay").GameObj | null} */
+let robotLabel = null;
+
 /** @type {import("kaplay").KAPLAYCtx | null} */
 let k = null;
+
+function destroyRobotVisuals() {
+  if (!k) return;
+  if (robotObj) {
+    k.destroy(robotObj);
+    robotObj = null;
+  }
+  if (robotLabel) {
+    k.destroy(robotLabel);
+    robotLabel = null;
+  }
+}
 
 /**
  * @param {import("kaplay").KAPLAYCtx} ctx
@@ -37,14 +53,46 @@ export function rebuildRobotVisual() {
   const { robot } = state;
   const { x, y } = gridToWorld(robot.row, robot.col);
   const carrying = robot.carrying;
+
+  if (robotObj || robotLabel) {
+    destroyRobotVisuals();
+  }
+
+  if (usesPlaceholderVisuals()) {
+    const size = TILE_SIZE * 0.78;
+    const color = carrying ? [232, 146, 10] : [62, 207, 201];
+    const label = carrying
+      ? scenarioConfig.copy.placeholders.robotCarry
+      : scenarioConfig.copy.placeholders.robot;
+
+    robotObj = k.add([
+      k.rect(size, size),
+      k.pos(x, y),
+      k.anchor("center"),
+      k.color(...color),
+      k.outline(2, k.rgb(20, 35, 48)),
+      k.scale(1),
+      k.rotate(directionToAngle(robot.direction)),
+      k.z(Z.ROBOT),
+      "robot",
+      { baseScale: 1, carrying },
+    ]);
+
+    robotLabel = k.add([
+      k.text(label, { size: 7, width: TILE_SIZE - 6, align: "center" }),
+      k.pos(x, y),
+      k.anchor("center"),
+      k.color(20, 35, 48),
+      k.z(Z.ROBOT + 0.1),
+      "robot-label",
+    ]);
+
+    return;
+  }
+
   const manifestKey = carrying ? "robotCarry" : "robot";
   const spriteName = carrying ? "robotCarry" : "robot";
   const robotScale = spriteScale(manifestKey, VISUAL_SCALE.robot);
-
-  if (robotObj) {
-    k.destroy(robotObj);
-    robotObj = null;
-  }
 
   robotObj = k.add([
     k.sprite(spriteName),
@@ -72,6 +120,9 @@ export function syncRobotVisual() {
   const { x, y } = gridToWorld(robot.row, robot.col);
   robotObj.pos = k.vec2(x, y);
   robotObj.angle = directionToAngle(robot.direction);
+  if (robotLabel) {
+    robotLabel.pos = k.vec2(x, y);
+  }
 }
 
 /**
@@ -95,10 +146,17 @@ export function animateMove(toRow, toCol) {
 
       robotObj.pos.x = start.x + (target.x - start.x) * t;
       robotObj.pos.y = start.y + (target.y - start.y) * t;
+      if (robotLabel) {
+        robotLabel.pos.x = robotObj.pos.x;
+        robotLabel.pos.y = robotObj.pos.y;
+      }
 
       if (t >= 1) {
         cancel.cancel();
         robotObj.pos = k.vec2(target.x, target.y);
+        if (robotLabel) {
+          robotLabel.pos = k.vec2(target.x, target.y);
+        }
         resolve();
       }
     });

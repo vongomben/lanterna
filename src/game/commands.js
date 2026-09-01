@@ -5,8 +5,8 @@
 import { DIRECTIONS, getFrontCell } from "./grid.js";
 import { canMoveForward, canPlaceInFrontCell } from "./collision.js";
 import { getState, setMissionCompleted } from "../state/gameState.js";
-import { level01 } from "../levels/level01.js";
-import { isContainerOnGoal } from "./rules.js";
+import { getActiveLevel, scenarioConfig } from "../data/scenario-config.js";
+import { isPayloadOnGoal } from "./rules.js";
 import {
   animateMove,
   animateTurn,
@@ -15,10 +15,10 @@ import {
   showBlockedFeedback,
 } from "./robot.js";
 import {
-  hideContainer,
-  showContainerAt,
-  playContainerSuccessSequence,
-} from "./container.js";
+  hidePayload,
+  showPayloadAt,
+  playPayloadSuccessSequence,
+} from "./payload.js";
 
 /** @typedef {import("./grid.js").Direction} Direction */
 
@@ -36,6 +36,8 @@ import {
  */
 
 /** @typedef {CommandSuccess | CommandFailure} CommandResult */
+
+const copy = () => scenarioConfig.copy;
 
 /**
  * @param {Direction} direction
@@ -56,7 +58,7 @@ export async function forward() {
       ok: false,
       error: {
         code: "ROBOT_BUSY",
-        message: "Il robot è già in movimento.",
+        message: copy().errors.robotBusy,
       },
     };
   }
@@ -69,7 +71,7 @@ export async function forward() {
       ok: false,
       error: {
         code: "MOVEMENT_BLOCKED",
-        message: "Movimento bloccato.",
+        message: copy().status.movementBlocked,
       },
     };
   }
@@ -95,7 +97,7 @@ export async function turnLeft() {
       ok: false,
       error: {
         code: "ROBOT_BUSY",
-        message: "Il robot è già in movimento.",
+        message: copy().errors.robotBusy,
       },
     };
   }
@@ -120,7 +122,7 @@ export async function turnRight() {
       ok: false,
       error: {
         code: "ROBOT_BUSY",
-        message: "Il robot è già in movimento.",
+        message: copy().errors.robotBusy,
       },
     };
   }
@@ -140,14 +142,14 @@ export async function turnRight() {
  */
 export async function grab() {
   const state = getState();
-  const { robot, container } = state;
+  const { robot, payload } = state;
 
   if (robot.moving) {
     return {
       ok: false,
       error: {
         code: "ROBOT_BUSY",
-        message: "Il robot è già in movimento.",
+        message: copy().errors.robotBusy,
       },
     };
   }
@@ -157,29 +159,29 @@ export async function grab() {
       ok: false,
       error: {
         code: "ALREADY_CARRYING",
-        message: "Il robot sta già trasportando un container.",
+        message: copy().errors.alreadyCarrying,
       },
     };
   }
 
-  if (container.carried) {
+  if (payload.carried) {
     return {
       ok: false,
       error: {
         code: "NOTHING_TO_GRAB",
-        message: "Non c'è nessun container davanti alla pinza.",
+        message: copy().errors.nothingToGrab,
       },
     };
   }
 
   const front = getFrontCell(robot);
 
-  if (container.row !== front.row || container.col !== front.col) {
+  if (payload.row !== front.row || payload.col !== front.col) {
     return {
       ok: false,
       error: {
         code: "NOTHING_TO_GRAB",
-        message: "Non c'è nessun container davanti alla pinza.",
+        message: copy().errors.nothingToGrab,
       },
     };
   }
@@ -187,11 +189,11 @@ export async function grab() {
   robot.moving = true;
 
   robot.carrying = true;
-  container.carried = true;
-  container.row = null;
-  container.col = null;
+  payload.carried = true;
+  payload.row = null;
+  payload.col = null;
 
-  hideContainer();
+  hidePayload();
   rebuildRobotVisual();
   await animateActionFeedback();
 
@@ -204,24 +206,24 @@ export async function grab() {
  */
 export async function release() {
   const state = getState();
-  const { robot, container } = state;
+  const { robot, payload } = state;
 
   if (robot.moving) {
     return {
       ok: false,
       error: {
         code: "ROBOT_BUSY",
-        message: "Il robot è già in movimento.",
+        message: copy().errors.robotBusy,
       },
     };
   }
 
-  if (!robot.carrying || !container.carried) {
+  if (!robot.carrying || !payload.carried) {
     return {
       ok: false,
       error: {
         code: "NOT_CARRYING",
-        message: "Il robot non sta trasportando nessun container.",
+        message: copy().errors.notCarrying,
       },
     };
   }
@@ -233,7 +235,7 @@ export async function release() {
       ok: false,
       error: {
         code: "RELEASE_OUT_OF_BOUNDS",
-        message: "Non puoi rilasciare il container fuori dall'area di gioco.",
+        message: copy().errors.releaseOutOfBounds,
       },
     };
   }
@@ -243,7 +245,7 @@ export async function release() {
       ok: false,
       error: {
         code: "RELEASE_BLOCKED",
-        message: "Non puoi rilasciare il container in quella posizione.",
+        message: copy().errors.releaseBlocked,
       },
     };
   }
@@ -253,17 +255,17 @@ export async function release() {
   robot.moving = true;
 
   robot.carrying = false;
-  container.carried = false;
-  container.row = row;
-  container.col = col;
+  payload.carried = false;
+  payload.row = row;
+  payload.col = col;
 
   rebuildRobotVisual();
-  showContainerAt(row, col);
+  showPayloadAt(row, col);
   await animateActionFeedback();
 
-  if (isContainerOnGoal(state, level01)) {
+  if (isPayloadOnGoal(state, getActiveLevel())) {
     setMissionCompleted();
-    await playContainerSuccessSequence();
+    await playPayloadSuccessSequence();
     robot.moving = false;
     return {
       ok: true,
