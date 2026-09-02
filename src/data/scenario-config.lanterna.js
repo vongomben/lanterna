@@ -16,6 +16,9 @@ export const scenarioConfig = {
       "Analizzare un percorso, tradurlo in istruzioni a blocchi e comandare un robot/gripper per estrarre un container dal deposito.",
   },
 
+  /** Accademia Digitale: A + 4 cifre per il locker fisico in stand. */
+  codiceLocker: "A6184",
+
   sprite: {
     visualMode: "sprites",
     oggetto: "img/generated/container.png",

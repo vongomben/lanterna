@@ -1,6 +1,7 @@
 /**
  * Mission completed overlay — HTML/CSS, not KAPLAY canvas.
  */
+import { scenarioConfig } from "../data/scenario-config.js";
 
 /** @type {HTMLElement | null} */
 let overlayEl = null;
@@ -25,11 +26,36 @@ export function initSuccessOverlay(onRetry) {
   });
 }
 
+function renderLocker() {
+  const code = String(scenarioConfig.codiceLocker ?? "")
+    .toUpperCase()
+    .replace(/[^A-Z0-9]/g, "");
+  const wrap = document.getElementById("success-locker-wrap");
+  const mount = document.getElementById("success-locker");
+  if (!wrap || !mount) return;
+  mount.replaceChildren();
+  if (!code) {
+    wrap.hidden = true;
+    return;
+  }
+  wrap.hidden = false;
+  mount.setAttribute("aria-label", `Codice locker: ${code}`);
+  for (const ch of code) {
+    const span = document.createElement("span");
+    span.className = /[A-Z]/.test(ch)
+      ? "locker__digit locker__digit--letter"
+      : "locker__digit";
+    span.textContent = ch;
+    mount.append(span);
+  }
+}
+
 export function showSuccessOverlay() {
   previouslyFocusedEl =
     document.activeElement instanceof HTMLElement
       ? document.activeElement
       : null;
+  renderLocker();
   overlayEl?.classList.add("success-overlay--visible");
   overlayEl?.setAttribute("aria-hidden", "false");
   window.requestAnimationFrame(() => {
