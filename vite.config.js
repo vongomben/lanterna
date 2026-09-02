@@ -7,6 +7,9 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const imgDir = path.resolve(__dirname, "img");
 const scenario = process.env.VITE_SCENARIO === "nautica" ? "nautica" : "lanterna";
 const outDir = process.env.VITE_OUT_DIR || "dist";
+const appVersion = JSON.parse(
+  fs.readFileSync(path.join(__dirname, "package.json"), "utf8"),
+).version;
 
 /** Serve /img from project root in dev (folder stays outside public/). */
 function imgStaticPlugin() {
@@ -35,6 +38,7 @@ export default defineConfig({
 
   define: {
     "import.meta.env.VITE_SCENARIO": JSON.stringify(scenario),
+    "import.meta.env.VITE_APP_VERSION": JSON.stringify(appVersion),
   },
 
   resolve: {

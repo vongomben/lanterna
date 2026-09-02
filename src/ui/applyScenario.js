@@ -2,6 +2,7 @@
  * Apply scenario copy and splash art to the static HTML shell.
  */
 import { setMission } from "./messages.js";
+import { APP_VERSION } from "../version.js";
 
 /**
  * @param {typeof import("../data/scenario-config.lanterna.js").scenarioConfig} config
@@ -10,14 +11,16 @@ export function applyScenarioToDom(config) {
   const { meta, copy, sprite } = config;
   const level = config.livelli[0];
 
-  document.title = meta.titolo;
+  document.title = `${meta.titolo} ${APP_VERSION}`;
   document.documentElement.dataset.scenario = meta.slug;
 
   setText("app-title", copy.headerTitle);
+  setText("app-version", APP_VERSION);
   setMission(level.istruzioni ?? copy.mission);
 
   setText("blockly-hint", copy.blocklyHint);
   setText("splash-title", copy.splash.title);
+  setText("splash-version", APP_VERSION);
   setText("splash-credits", copy.splash.credits);
   setText("splash-cta", copy.splash.cta);
   setText("success-title", copy.success.title);
