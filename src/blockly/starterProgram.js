@@ -47,3 +47,22 @@ export function loadStarterProgram(workspace) {
     Blockly.Events.enable();
   }
 }
+
+/**
+ * Restore the workspace to the exact initial PRENDI → RILASCIA program.
+ * Session stats and game state are intentionally left unchanged.
+ * @param {import("blockly").WorkspaceSvg} workspace
+ */
+export function resetStarterProgram(workspace) {
+  Blockly.Events.disable();
+  try {
+    workspace.clear();
+  } finally {
+    Blockly.Events.enable();
+  }
+
+  loadStarterProgram(workspace);
+  workspace.getToolbox()?.clearSelection();
+  workspace.clearUndo();
+  Blockly.svgResize(workspace);
+}

@@ -3,7 +3,7 @@
     "description": "Derived sprites — trimmed visible bounds. Do not edit by hand.",
     "sourceDir": "img/",
     "outputDir": "img/generated/",
-    "generatedAt": "2026-09-01T16:21:19.291Z"
+    "generatedAt": "2026-09-02T12:57:24.603Z"
   },
   "robot": {
     "source": "robot_gripper_open.png",

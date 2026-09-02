@@ -79,12 +79,14 @@ export async function forward() {
   const { row, col } = check.target;
   robot.moving = true;
 
-  await animateMove(row, col);
-
-  robot.row = row;
-  robot.col = col;
-  robot.moving = false;
-  return { ok: true };
+  try {
+    await animateMove(row, col);
+    robot.row = row;
+    robot.col = col;
+    return { ok: true };
+  } finally {
+    robot.moving = false;
+  }
 }
 
 /**
@@ -105,11 +107,13 @@ export async function turnLeft() {
   const newDir = rotateDirection(robot.direction, -1);
   robot.moving = true;
 
-  await animateTurn(newDir);
-
-  robot.direction = newDir;
-  robot.moving = false;
-  return { ok: true };
+  try {
+    await animateTurn(newDir);
+    robot.direction = newDir;
+    return { ok: true };
+  } finally {
+    robot.moving = false;
+  }
 }
 
 /**
@@ -130,11 +134,13 @@ export async function turnRight() {
   const newDir = rotateDirection(robot.direction, 1);
   robot.moving = true;
 
-  await animateTurn(newDir);
-
-  robot.direction = newDir;
-  robot.moving = false;
-  return { ok: true };
+  try {
+    await animateTurn(newDir);
+    robot.direction = newDir;
+    return { ok: true };
+  } finally {
+    robot.moving = false;
+  }
 }
 
 /**
@@ -187,18 +193,34 @@ export async function grab() {
   }
 
   robot.moving = true;
+  const previousPayloadPosition = {
+    row: payload.row,
+    col: payload.col,
+  };
 
-  robot.carrying = true;
-  payload.carried = true;
-  payload.row = null;
-  payload.col = null;
+  try {
+    robot.carrying = true;
+    payload.carried = true;
+    payload.row = null;
+    payload.col = null;
 
-  hidePayload();
-  rebuildRobotVisual();
-  await animateActionFeedback();
-
-  robot.moving = false;
-  return { ok: true };
+    hidePayload();
+    rebuildRobotVisual();
+    await animateActionFeedback();
+    return { ok: true };
+  } catch (error) {
+    robot.carrying = false;
+    payload.carried = false;
+    payload.row = previousPayloadPosition.row;
+    payload.col = previousPayloadPosition.col;
+    rebuildRobotVisual();
+    if (payload.row !== null && payload.col !== null) {
+      showPayloadAt(payload.row, payload.col);
+    }
+    throw error;
+  } finally {
+    robot.moving = false;
+  }
 }
 
 /**
@@ -254,28 +276,38 @@ export async function release() {
 
   robot.moving = true;
 
-  robot.carrying = false;
-  payload.carried = false;
-  payload.row = row;
-  payload.col = col;
+  try {
+    robot.carrying = false;
+    payload.carried = false;
+    payload.row = row;
+    payload.col = col;
 
-  rebuildRobotVisual();
-  showPayloadAt(row, col);
-  await animateActionFeedback();
+    rebuildRobotVisual();
+    showPayloadAt(row, col);
+    await animateActionFeedback();
 
-  if (isPayloadOnGoal(state, getActiveLevel())) {
-    setMissionCompleted();
-    await playPayloadSuccessSequence();
+    if (isPayloadOnGoal(state, getActiveLevel())) {
+      setMissionCompleted();
+      await playPayloadSuccessSequence();
+      return {
+        ok: true,
+        terminal: true,
+        event: "MISSION_COMPLETED",
+      };
+    }
+
+    return { ok: true };
+  } catch (error) {
+    robot.carrying = true;
+    payload.carried = true;
+    payload.row = null;
+    payload.col = null;
+    hidePayload();
+    rebuildRobotVisual();
+    throw error;
+  } finally {
     robot.moving = false;
-    return {
-      ok: true,
-      terminal: true,
-      event: "MISSION_COMPLETED",
-    };
   }
-
-  robot.moving = false;
-  return { ok: true };
 }
 
 export const commands = {

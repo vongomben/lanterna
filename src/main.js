@@ -40,7 +40,7 @@ import { initSplashScreen, isSplashActive } from "./ui/splashScreen.js";
 import { scenarioConfig } from "./data/scenario-config.js";
 import { applyScenarioToDom } from "./ui/applyScenario.js";
 
-const DEBUG_PARSE = true;
+const DEBUG_PARSE = import.meta.env?.DEV ?? false;
 
 /**
  * @param {{ code: string, message: string }} error
@@ -74,7 +74,7 @@ function applyMissionCompletedUi() {
 
 function applyPlayingUi() {
   hideSuccessOverlay();
-  setControlsState({ run: true, stop: true, reset: true });
+  setControlsState({ run: true, stop: false, reset: true });
   setKeyboardEnabled(() => !isProgramRunning() && !isMissionCompleted());
 }
 
@@ -136,7 +136,14 @@ function bootstrap() {
   const blocklyRoot = document.getElementById("blockly-root");
 
   initGame(gameRoot);
-  initBlockly(blocklyRoot);
+  initBlockly(blocklyRoot, {
+    onProgramReset: () => {
+      if (isProgramRunning()) {
+        stopProgram();
+      }
+      showStatus("Programma iniziale ripristinato.");
+    },
+  });
   initSessionDisplay();
   initSuccessOverlay(() => {
     void handleNewSession();
@@ -182,13 +189,25 @@ function bootstrap() {
 
       clearAllBlockFeedback(workspace);
 
-      setControlsState({ run: false, stop: false, reset: false });
+      setControlsState({ run: false, stop: true, reset: false });
       setKeyboardEnabled(() => false);
 
-      const result = await runProgram(
-        parsed,
-        createExecutorFeedbackHooks(workspace),
-      );
+      let result;
+      try {
+        result = await runProgram(
+          parsed,
+          createExecutorFeedbackHooks(workspace),
+        );
+      } catch (error) {
+        console.error(`[${scenarioConfig.meta.titolo}] unexpected executor error:`, error);
+        result = {
+          ok: false,
+          error: {
+            code: "INTERNAL_ERROR",
+            message: "Si è verificato un errore imprevisto. Riprova.",
+          },
+        };
+      }
 
       if (result.ok && result.terminal && result.event === "MISSION_COMPLETED") {
         completeSession();
@@ -200,7 +219,7 @@ function bootstrap() {
         return;
       }
 
-      setControlsState({ run: true, stop: true, reset: true });
+      setControlsState({ run: true, stop: false, reset: true });
       setKeyboardEnabled(
         () => !isSplashActive() && !isProgramRunning() && !isMissionCompleted(),
       );

@@ -3,9 +3,8 @@
  */
 import {
   DIRECTION_DELTA,
-  DIRECTION_TO_SIDE,
-  OPPOSITE_SIDE,
 } from "./grid.js";
+import { getState } from "../state/gameState.js";
 
 /** @typedef {import("./grid.js").Side} Side */
 
@@ -18,18 +17,54 @@ let gridRows = 0;
 /** @type {number} */
 let gridCols = 0;
 
+/** Static occupied cells, such as solid level props. */
+/** @type {Set<string>} */
+let occupiedCells = new Set();
+
+/** @param {number} row @param {number} col */
+function cellKey(row, col) {
+  return `${row},${col}`;
+}
+
 /** @param {number} row @param {number} col @param {Side} side */
 function edgeKey(row, col, side) {
   return `${row},${col},${side}`;
 }
 
 /**
- * @param {{ rows: number, cols: number, walls: Array<{ row: number, col: number, side: Side }> }} level
+ * Props are solid by default; set `blocking: false` for decorative props.
+ * @param {{ rows: number, cols: number, walls: Array<{ row: number, col: number, side: Side }>, props?: Array<{ row: number, col: number, blocking?: boolean }> }} level
  */
 export function initCollision(level) {
   gridRows = level.rows;
   gridCols = level.cols;
   edgeWalls = new Set(level.walls.map((w) => edgeKey(w.row, w.col, w.side)));
+  occupiedCells = new Set(
+    (level.props ?? [])
+      .filter((prop) => prop.blocking !== false)
+      .map((prop) => cellKey(prop.row, prop.col)),
+  );
+}
+
+/**
+ * Check dynamic and static occupants independently from wall geometry.
+ * @param {number} row
+ * @param {number} col
+ * @param {{ ignorePayload?: boolean }} [options]
+ */
+export function getCellOccupant(row, col, { ignorePayload = false } = {}) {
+  if (occupiedCells.has(cellKey(row, col))) {
+    return "prop";
+  }
+
+  if (!ignorePayload) {
+    const { payload } = getState();
+    if (!payload.carried && payload.row === row && payload.col === col) {
+      return "payload";
+    }
+  }
+
+  return null;
 }
 
 /** @param {number} row @param {number} col @param {Side} side */
@@ -115,11 +150,16 @@ export function canMoveForward(fromRow, fromCol, direction) {
     return { ok: false, reason: "wall", target };
   }
 
+  const occupant = getCellOccupant(target.row, target.col);
+  if (occupant) {
+    return { ok: false, reason: "occupied", occupant, target };
+  }
+
   return { ok: true, target };
 }
 
 /**
- * Can the robot place a container in the cell ahead (release target)?
+ * Can the robot place the payload in the cell ahead (release target)?
  * Same wall/bounds rules as forward movement into that cell.
  *
  * @param {number} fromRow
@@ -135,6 +175,13 @@ export function canPlaceInFrontCell(fromRow, fromCol, direction) {
 
   if (isBlockedByWall(fromRow, fromCol, target.row, target.col)) {
     return { ok: false, reason: "wall", target };
+  }
+
+  const occupant = getCellOccupant(target.row, target.col, {
+    ignorePayload: true,
+  });
+  if (occupant) {
+    return { ok: false, reason: "occupied", occupant, target };
   }
 
   return { ok: true, target };

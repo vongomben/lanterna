@@ -109,9 +109,15 @@ export const scenarioConfig = {
       payload: { row: 0, col: 0 },
       walls: level01Walls,
       props: [
-        { row: 3, col: 0, type: "crate_wood", label: "pallet" },
-        { row: 5, col: 1, type: "traffic_cone", label: "segnale" },
-        { row: 1, col: 3, type: "technical_terminal", label: "banco QC" },
+        { row: 3, col: 0, type: "crate_wood", label: "pallet", blocking: true },
+        { row: 5, col: 1, type: "traffic_cone", label: "segnale", blocking: true },
+        {
+          row: 1,
+          col: 3,
+          type: "technical_terminal",
+          label: "banco QC",
+          blocking: false,
+        },
       ],
     },
   ],

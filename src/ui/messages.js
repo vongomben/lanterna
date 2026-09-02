@@ -5,13 +5,19 @@
 /**
  * @param {string} text
  */
+let statusTimer = null;
+
 export function showStatus(text) {
   const mission = document.getElementById("mission-text");
   if (mission) {
     mission.dataset.original ??= mission.textContent ?? "";
     mission.textContent = text;
-    window.setTimeout(() => {
+    if (statusTimer !== null) {
+      window.clearTimeout(statusTimer);
+    }
+    statusTimer = window.setTimeout(() => {
       mission.textContent = mission.dataset.original ?? text;
+      statusTimer = null;
     }, 2000);
   }
 }

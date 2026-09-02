@@ -104,9 +104,15 @@ export const scenarioConfig = {
       payload: { row: 0, col: 0 },
       walls: level01Walls,
       props: [
-        { row: 3, col: 0, type: "crate_wood" },
-        { row: 5, col: 1, type: "traffic_cone" },
-        { row: 1, col: 3, type: "technical_terminal" },
+        { row: 3, col: 0, type: "crate_wood", blocking: true },
+        { row: 5, col: 1, type: "traffic_cone", blocking: true },
+        {
+          row: 1,
+          col: 3,
+          type: "technical_terminal",
+          // Wall-mounted scenery: visually overlaps a cell but does not occupy it.
+          blocking: false,
+        },
       ],
     },
   ],

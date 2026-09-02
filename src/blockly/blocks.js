@@ -5,12 +5,18 @@
 import * as Blockly from "blockly/core";
 import { FieldNumber } from "blockly/core";
 import { buildToolbox, BLOCK_COLOURS } from "./toolbox.js";
-import { loadStarterProgram } from "./starterProgram.js";
+import {
+  loadStarterProgram,
+  resetStarterProgram,
+} from "./starterProgram.js";
 import { setupBlockContextMenu } from "./contextMenu.js";
 import { scenarioConfig } from "../data/scenario-config.js";
 
 /** @type {import("blockly").WorkspaceSvg | null} */
 let workspace = null;
+
+/** @type {(() => void) | undefined} */
+let programResetHook;
 
 function registerBlocks() {
   const { blocks } = scenarioConfig.copy;
@@ -89,7 +95,10 @@ registerBlocks();
 const MOBILE_QUERY = "(max-width: 768px)";
 
 function isMobileLayout() {
-  return window.matchMedia(MOBILE_QUERY).matches;
+  return (
+    window.matchMedia("(pointer: coarse)").matches ||
+    window.matchMedia(MOBILE_QUERY).matches
+  );
 }
 
 const lanternaTheme = Blockly.Theme.defineTheme("lanterna", {
@@ -116,11 +125,12 @@ const lanternaTheme = Blockly.Theme.defineTheme("lanterna", {
  * @returns {import("blockly").WorkspaceSvg}
  */
 function injectWorkspace(container) {
+  const useTouchLayout = isMobileLayout();
   return Blockly.inject(container, {
     toolbox: buildToolbox(),
     theme: lanternaTheme,
     renderer: "geras",
-    horizontalLayout: isMobileLayout(),
+    horizontalLayout: useTouchLayout,
     toolboxPosition: "start",
     grid: {
       spacing: 24,
@@ -132,9 +142,9 @@ function injectWorkspace(container) {
       controls: true,
       wheel: true,
       pinch: true,
-      startScale: 0.95,
+      startScale: useTouchLayout ? 0.82 : 0.95,
       maxScale: 1.4,
-      minScale: 0.7,
+      minScale: useTouchLayout ? 0.6 : 0.7,
       scaleSpeed: 1.08,
     },
     trashcan: true,
@@ -159,6 +169,8 @@ function reinjectForViewport(container) {
   workspace.dispose();
   workspace = injectWorkspace(container);
   Blockly.serialization.workspaces.load(state, workspace);
+  setupTrashReset(container, workspace);
+  setupWorkspaceResize(container);
   requestAnimationFrame(() => {
     if (workspace) Blockly.svgResize(workspace);
   });
@@ -166,14 +178,17 @@ function reinjectForViewport(container) {
 
 /**
  * @param {HTMLElement} container
+ * @param {{ onProgramReset?: () => void }} [options]
  * @returns {import("blockly").WorkspaceSvg}
  */
-export function initBlockly(container) {
+export function initBlockly(container, { onProgramReset } = {}) {
+  programResetHook = onProgramReset;
   setupBlockContextMenu();
 
   workspace = injectWorkspace(container);
   setupWorkspaceResize(container);
   loadStarterProgram(workspace);
+  setupTrashReset(container, workspace);
 
   window.matchMedia(MOBILE_QUERY).addEventListener("change", () => {
     reinjectForViewport(container);
@@ -192,10 +207,43 @@ export function resizeBlocklyWorkspace() {
 }
 
 /**
+ * Turn Blockly's trash icon into an explicit reset-to-starter action.
+ * A click is distinct from dropping a block onto the trash.
+ * @param {HTMLElement} container
+ * @param {import("blockly").WorkspaceSvg} ws
+ */
+function setupTrashReset(container, ws) {
+  const nativeTrash = container.querySelector(".blocklyTrash");
+  nativeTrash?.setAttribute("aria-hidden", "true");
+
+  container.querySelectorAll(".blockly-reset-program").forEach((button) => {
+    button.remove();
+  });
+
+  const resetButton = document.createElement("button");
+  resetButton.type = "button";
+  resetButton.className = "blockly-reset-program";
+  resetButton.setAttribute("aria-label", "Ripristina il programma iniziale");
+  resetButton.title = "Ripristina il programma iniziale";
+
+  resetButton.addEventListener("click", () => {
+    resetStarterProgram(ws);
+    programResetHook?.();
+  });
+
+  container.append(resetButton);
+}
+
+/**
  * @param {HTMLElement} container
  */
 function setupWorkspaceResize(container) {
   const resize = () => {
+    const injectionDiv = container.querySelector(":scope > .injectionDiv");
+    if (injectionDiv instanceof HTMLElement) {
+      injectionDiv.style.width = `${container.clientWidth}px`;
+      injectionDiv.style.height = `${container.clientHeight}px`;
+    }
     if (workspace) Blockly.svgResize(workspace);
   };
 
@@ -205,8 +253,13 @@ function setupWorkspaceResize(container) {
   }
 
   window.addEventListener("resize", resize);
-  window.matchMedia("(max-width: 768px)").addEventListener("change", resize);
-  requestAnimationFrame(resize);
+  window.addEventListener("orientationchange", resize);
+  window.matchMedia(MOBILE_QUERY).addEventListener("change", resize);
+
+  requestAnimationFrame(() => {
+    resize();
+    requestAnimationFrame(resize);
+  });
 }
 
 /** @returns {import("blockly").WorkspaceSvg | null} */
