@@ -19,6 +19,13 @@ export const scenarioConfig = {
   /** Accademia Digitale: A + 4 cifre per il locker fisico in stand. */
   codiceLocker: "A6184",
 
+  navigazione: {
+    homeUrl: "../",
+    logoSrc: "../img/IT-Y-Flogo.png",
+    percorsoLabel: "percorsi Accademia Digitale",
+    percorsoUrl: "../digitale/",
+  },
+
   sprite: {
     visualMode: "sprites",
     oggetto: "img/generated/container.png",

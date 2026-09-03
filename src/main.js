@@ -39,6 +39,7 @@ import {
 import { initSplashScreen, isSplashActive } from "./ui/splashScreen.js";
 import { scenarioConfig } from "./data/scenario-config.js";
 import { applyScenarioToDom } from "./ui/applyScenario.js";
+import { mountSiteNav } from "./ui/siteNav.js";
 
 const DEBUG_PARSE = import.meta.env?.DEV ?? false;
 
@@ -129,6 +130,7 @@ async function handleNewSession() {
 function bootstrap() {
   const scenarioId =
     import.meta.env.VITE_SCENARIO === "nautica" ? "nautica" : "lanterna";
+  mountSiteNav(scenarioConfig.navigazione);
   applyScenarioToDom(scenarioConfig);
   document.documentElement.dataset.scenarioId = scenarioId;
 

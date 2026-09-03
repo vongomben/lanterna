@@ -17,6 +17,13 @@ export const scenarioConfig = {
       "Programmare un braccio robotico (Dobot Magician Go, DobotLab) per prelevare un componente nautico, depositarlo in zona controllo qualità e verificarne le specifiche prima del deposito finale.",
   },
 
+  navigazione: {
+    homeUrl: "../",
+    logoSrc: "../img/IT-Y-Flogo.png",
+    percorsoLabel: "percorsi ITS Meccatronica",
+    percorsoUrl: "../meccatronica/",
+  },
+
   sprite: {
     visualMode: "placeholders",
     oggetto: null,
