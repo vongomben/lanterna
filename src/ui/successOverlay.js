@@ -2,6 +2,19 @@
  * Mission completed overlay — HTML/CSS, not KAPLAY canvas.
  */
 import { scenarioConfig } from "../data/scenario-config.js";
+import { getAttempts } from "../state/sessionState.js";
+
+/**
+ * Punteggio a stelle comune ai giochi IT'S YOUR FUTURE: soglie[i] = esecuzioni massime per (5 - i) stelle.
+ * 1 esecuzione → 5, 2 → 4, 3–4 → 3, 5–7 → 2, 8+ → 1. Sovrascrivibile da scenarioConfig.punteggio.soglie.
+ */
+const SOGLIE_STELLE = [1, 2, 4, 7];
+
+function calcolaStelle(esecuzioni) {
+  const soglie = scenarioConfig.punteggio?.soglie ?? SOGLIE_STELLE;
+  const i = soglie.findIndex((max) => esecuzioni <= max);
+  return i === -1 ? 1 : 5 - i;
+}
 
 /** @type {HTMLElement | null} */
 let overlayEl = null;
@@ -26,28 +39,14 @@ export function initSuccessOverlay(onRetry) {
   });
 }
 
-function renderLocker() {
-  const code = String(scenarioConfig.codiceLocker ?? "")
-    .toUpperCase()
-    .replace(/[^A-Z0-9]/g, "");
-  const wrap = document.getElementById("success-locker-wrap");
-  const mount = document.getElementById("success-locker");
-  if (!wrap || !mount) return;
-  mount.replaceChildren();
-  if (!code) {
-    wrap.hidden = true;
-    return;
-  }
-  wrap.hidden = false;
-  mount.setAttribute("aria-label", `Codice locker: ${code}`);
-  for (const ch of code) {
-    const span = document.createElement("span");
-    span.className = /[A-Z]/.test(ch)
-      ? "locker__digit locker__digit--letter"
-      : "locker__digit";
-    span.textContent = ch;
-    mount.append(span);
-  }
+function renderScore() {
+  const wrap = document.getElementById("success-score");
+  if (!wrap) return;
+  const stelle = calcolaStelle(getAttempts());
+  wrap.setAttribute("aria-label", `Punteggio: ${stelle} stelle su 5`);
+  wrap.querySelectorAll(".score__star").forEach((star, i) => {
+    star.classList.toggle("score__star--on", i < stelle);
+  });
 }
 
 export function showSuccessOverlay() {
@@ -55,7 +54,7 @@ export function showSuccessOverlay() {
     document.activeElement instanceof HTMLElement
       ? document.activeElement
       : null;
-  renderLocker();
+  renderScore();
   overlayEl?.classList.add("success-overlay--visible");
   overlayEl?.setAttribute("aria-hidden", "false");
   window.requestAnimationFrame(() => {
