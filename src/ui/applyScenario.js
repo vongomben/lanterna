@@ -44,6 +44,11 @@ function setText(id, text) {
  * @param {typeof import("../data/scenario-config.lanterna.js").scenarioConfig.sprite} sprite
  * @param {typeof import("../data/scenario-config.lanterna.js").scenarioConfig.copy} copy
  */
+/** Relativo a BASE_URL: il gioco è pubblicato in una sottocartella del sito. */
+function assetUrl(path) {
+  return `${import.meta.env?.BASE_URL ?? "./"}${path.replace(/^\//, "")}`;
+}
+
 function applySplashArt(sprite, copy) {
   const art = document.getElementById("splash-art");
   const bg = document.getElementById("splash-bg");
@@ -55,7 +60,7 @@ function applySplashArt(sprite, copy) {
 
   if (bg) {
     if (sprite.sfondo) {
-      bg.src = sprite.sfondo.startsWith("/") ? sprite.sfondo : `/${sprite.sfondo}`;
+      bg.src = assetUrl(sprite.sfondo);
       bg.hidden = false;
     } else {
       bg.hidden = true;
@@ -64,9 +69,7 @@ function applySplashArt(sprite, copy) {
 
   if (tower) {
     if (sprite.splashTower) {
-      tower.src = sprite.splashTower.startsWith("/")
-        ? sprite.splashTower
-        : `/${sprite.splashTower}`;
+      tower.src = assetUrl(sprite.splashTower);
       tower.alt = sprite.splashTowerAlt ?? "";
       tower.hidden = false;
     } else {
